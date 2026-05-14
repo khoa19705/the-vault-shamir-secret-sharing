@@ -3,118 +3,162 @@ import secrets
 import json
 import os
 
-# ============================================
-# SHAMIR SECRET SHARING - SHARE GENERATOR
-# ============================================
-
-# Parameters
-N = 5   # Total shares
-T = 3   # Threshold
-
-# Large prime number for finite field operations
-PRIME = 2**257 - 93
+from utils import (
+    polynomial,
+    PRIME
+)
 
 # ============================================
-# Generate AES-256 Secret Key
+# SHARE GENERATION PROCESS
 # ============================================
 
-secret = secrets.randbits(256)
+def generate_shares():
 
-print("====================================")
-print(" AES-256 MASTER KEY ")
-print("====================================")
-print(secret)
+    output = ""
 
-# ============================================
-# Generate Random Polynomial Coefficients
-# f(x) = secret + a1*x + a2*x^2
-# ============================================
+    # Parameters
+    N = 5
+    T = 3
 
-coefficients = [secret]
+    # ========================================
+    # Generate AES-256 Secret Key
+    # ========================================
 
-for _ in range(T - 1):
-    coefficients.append(random.randrange(1, PRIME))
+    secret = secrets.randbits(256)
 
-print("\n====================================")
-print(" POLYNOMIAL COEFFICIENTS ")
-print("====================================")
+    output += "====================================\n"
+    output += " AES-256 MASTER KEY \n"
+    output += "====================================\n"
+    output += f"{secret}\n"
 
-for i, coeff in enumerate(coefficients):
-    print(f"a{i} = {coeff}")
+    # ========================================
+    # Generate Polynomial Coefficients
+    # ========================================
 
-# ============================================
-# Polynomial Function
-# ============================================
+    coefficients = [secret]
 
-def polynomial(x, coeffs):
+    for _ in range(T - 1):
 
-    result = 0
+        coefficients.append(
+            random.randrange(1, PRIME)
+        )
 
-    for power, coeff in enumerate(coeffs):
-        result += coeff * (x ** power)
+    output += "\n====================================\n"
+    output += " POLYNOMIAL COEFFICIENTS \n"
+    output += "====================================\n"
 
-    return result % PRIME
+    for i, coeff in enumerate(coefficients):
 
-# ============================================
-# Generate Shares
-# ============================================
+        output += f"a{i} = {coeff}\n"
 
-shares = []
+    # ========================================
+    # Generate Shares
+    # ========================================
 
-print("\n====================================")
-print(" GENERATED SHARES ")
-print("====================================")
+    shares = []
 
-for i in range(1, N + 1):
+    output += "\n====================================\n"
+    output += " GENERATED SHARES \n"
+    output += "====================================\n"
 
-    x = i
-    y = polynomial(x, coefficients)
+    for i in range(1, N + 1):
 
-    share = (x, y)
+        x = i
 
-    shares.append(share)
+        y = polynomial(x, coefficients)
 
-    print(f"Admin {i}: {share}")
+        share = (x, y)
 
-# ============================================
-# Create Shares Folder
-# ============================================
+        shares.append(share)
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
+        output += f"Admin {i}: {share}\n"
 
-shares_folder = os.path.join(base_dir, "shares")
+    # ========================================
+    # Create Shares Folder
+    # ========================================
 
-os.makedirs(shares_folder, exist_ok=True)
-
-# ============================================
-# Save Shares to JSON Files
-# ============================================
-
-for i, (x, y) in enumerate(shares, start=1):
-
-    share_data = {
-        "admin_id": i,
-        "x": x,
-        "y": y
-    }
-
-    filename = os.path.join(
-        shares_folder,
-        f"site_admin_{i}.json"
+    current_dir = os.path.dirname(
+        os.path.abspath(__file__)
     )
 
-    with open(filename, "w") as file:
-        json.dump(share_data, file, indent=4)
+    project_root = os.path.dirname(
+        current_dir
+    )
 
-    print(f"Saved: {filename}")
+    shares_folder = os.path.join(
+        project_root,
+        "shares"
+    )
+
+    os.makedirs(
+        shares_folder,
+        exist_ok=True
+    )
+
+    # ========================================
+    # Save Original Secret
+    # ========================================
+
+    original_key_path = os.path.join(
+        shares_folder,
+        "original_key.txt"
+    )
+
+    with open(original_key_path, "w") as file:
+
+        file.write(str(secret))
+
+    output += "\nOriginal key saved:\n"
+    output += f"{original_key_path}\n"
+
+    # ========================================
+    # Save Shares
+    # ========================================
+
+    for i, (x, y) in enumerate(
+        shares,
+        start=1
+    ):
+
+        share_data = {
+            "admin_id": i,
+            "x": x,
+            "y": y
+        }
+
+        filename = os.path.join(
+            shares_folder,
+            f"site_admin_{i}.json"
+        )
+
+        with open(filename, "w") as file:
+
+            json.dump(
+                share_data,
+                file,
+                indent=4
+            )
+
+        output += f"Saved: {filename}\n"
+
+    # ========================================
+    # Finished
+    # ========================================
+
+    output += "\n====================================\n"
+    output += " SHARES SAVED SUCCESSFULLY \n"
+    output += "====================================\n"
+
+    output += f"{shares_folder}\n"
+
+    return output
 
 # ============================================
-# Finished
+# Run Directly
 # ============================================
 
-print("\n====================================")
-print(" SHARES SAVED SUCCESSFULLY ")
-print("====================================")
+if __name__ == "__main__":
 
-print(f"Folder Location:")
-print(shares_folder)
+    result = generate_shares()
+
+    print(result)
