@@ -41,21 +41,59 @@ def recover_secret_process():
     )
 
     # ========================================
-    # Load All Shares
+    # Load Available Shares
     # ========================================
 
     all_shares = []
 
+    output += "====================================\n"
+    output += " LOADING AVAILABLE SHARES \n"
+    output += "====================================\n\n"
+
     for i in range(1, 6):
 
-        share = load_share(
-            os.path.join(
-                shares_folder,
-                f"site_admin_{i}.json"
-            )
+        filepath = os.path.join(
+            shares_folder,
+            f"site_admin_{i}.json"
         )
 
-        all_shares.append(share)
+        if os.path.exists(filepath):
+
+            share = load_share(filepath)
+
+            all_shares.append(share)
+
+            output += (
+                f"Loaded: "
+                f"site_admin_{i}.json\n"
+            )
+
+        else:
+
+            output += (
+                f"MISSING: "
+                f"site_admin_{i}.json\n"
+            )
+
+    # ========================================
+    # Check Minimum Shares
+    # ========================================
+
+    if len(all_shares) < 3:
+
+        output += "\n====================================\n"
+        output += " RECOVERY FAILED \n"
+        output += "====================================\n"
+
+        output += (
+            "Not enough shares available.\n"
+        )
+
+        output += (
+            "At least 3 shares are required.\n"
+        )
+
+        return output
 
     # ========================================
     # Random Recovery Using 3 Shares
@@ -66,7 +104,7 @@ def recover_secret_process():
         3
     )
 
-    output += "====================================\n"
+    output += "\n====================================\n"
     output += " RECOVERING SECRET WITH 3 SHARES \n"
     output += "====================================\n\n"
 
@@ -145,61 +183,58 @@ def recover_secret_process():
         )
 
     # ========================================
-    # Failure Test with Random 2 Shares
+    # Failure Test with 2 Shares
     # ========================================
 
-    two_shares = random.sample(
-        all_shares,
-        2
-    )
+    if len(all_shares) >= 2:
 
-    failed_secret = recover_secret(
-        two_shares
-    )
-
-    failure_success = (
-        failed_secret != original_secret
-    )
-
-    output += "\n====================================\n"
-    output += " FAILURE TEST WITH 2 SHARES \n"
-    output += "====================================\n\n"
-
-    output += "Selected Shares:\n"
-
-    for share in two_shares:
-
-        output += f"{share}\n"
-
-    output += (
-        f"\nRecovered Value: "
-        f"{failed_secret}\n"
-    )
-
-    if failure_success:
-
-        output += (
-            "\nSTATUS: FAILED AS EXPECTED\n"
+        two_shares = random.sample(
+            all_shares,
+            2
         )
 
-        output += (
-            "2 shares are insufficient "
-            "to recover the secret.\n"
+        failed_secret = recover_secret(
+            two_shares
         )
 
-    else:
-
-        output += (
-            "\nSTATUS: UNEXPECTED\n"
+        failure_success = (
+            failed_secret != original_secret
         )
 
+        output += "\n====================================\n"
+        output += " FAILURE TEST WITH 2 SHARES \n"
+        output += "====================================\n\n"
+
+        output += "Selected Shares:\n"
+
+        for share in two_shares:
+
+            output += f"{share}\n"
+
         output += (
-            "Recovery should not work "
-            "with only 2 shares.\n"
+            f"\nRecovered Value: "
+            f"{failed_secret}\n"
         )
+
+        if failure_success:
+
+            output += (
+                "\nSTATUS: FAILED AS EXPECTED\n"
+            )
+
+            output += (
+                "2 shares are insufficient "
+                "to recover the secret.\n"
+            )
+
+        else:
+
+            output += (
+                "\nSTATUS: UNEXPECTED\n"
+            )
 
     # ========================================
-    # Write Recovery Report
+    # Write Report
     # ========================================
 
     with open(report_path, "w") as report:
