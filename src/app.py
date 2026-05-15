@@ -1,7 +1,11 @@
 import os
 import subprocess
 import tkinter as tk
-from tkinter import scrolledtext
+
+from tkinter import (
+    scrolledtext,
+    ttk
+)
 
 import requests
 
@@ -40,11 +44,34 @@ root.title(
     "The Vault - Shamir Secret Sharing"
 )
 
-# Bigger window
-root.geometry("1200x850")
+root.geometry("1200x900")
 
-# Allow resize
 root.resizable(True, True)
+
+# ============================================
+# Title
+# ============================================
+
+title_label = tk.Label(
+    root,
+    text="THE VAULT - DISTRIBUTED SECRET SYSTEM",
+    font=("Arial", 18, "bold")
+)
+
+title_label.pack(pady=10)
+
+# ============================================
+# Progress Bar
+# ============================================
+
+progress = ttk.Progressbar(
+    root,
+    orient="horizontal",
+    length=500,
+    mode="determinate"
+)
+
+progress.pack(pady=10)
 
 # ============================================
 # Output Area
@@ -52,7 +79,7 @@ root.resizable(True, True)
 
 output_box = scrolledtext.ScrolledText(
     root,
-    width=135,
+    width=140,
     height=25
 )
 
@@ -62,7 +89,7 @@ output_box.pack(
 )
 
 # ============================================
-# Helper Function
+# Helper Functions
 # ============================================
 
 def write_output(text):
@@ -73,6 +100,14 @@ def write_output(text):
     )
 
     output_box.see(tk.END)
+
+# --------------------------------------------
+
+def update_progress(value):
+
+    progress["value"] = value
+
+    root.update_idletasks()
 
 # ============================================
 # Node Controls
@@ -98,7 +133,8 @@ def start_node(node_number):
 
         process = subprocess.Popen(
             ["node", "server.js"],
-            cwd=node_path
+            cwd=node_path,
+            shell=True
         )
 
         node_processes[node_number] = process
@@ -127,20 +163,25 @@ def stop_node(node_number):
             timeout=2
         )
 
-        write_output(
-            f"Node {node_number} stopped."
-        )
+    except:
+        pass
 
-        if node_number in node_processes:
+    if node_number in node_processes:
+
+        try:
+
+            process = node_processes[node_number]
+
+            process.terminate()
 
             del node_processes[node_number]
 
-    except Exception as e:
+        except:
+            pass
 
-        write_output(
-            f"Failed to stop Node "
-            f"{node_number}: {str(e)}"
-        )
+    write_output(
+        f"Node {node_number} stopped."
+    )
 
 # --------------------------------------------
 
@@ -221,6 +262,8 @@ def gui_generate_shares():
 
     output_box.delete(1.0, tk.END)
 
+    update_progress(0)
+
     write_output(
         "===================================="
     )
@@ -233,20 +276,30 @@ def gui_generate_shares():
         "====================================\n"
     )
 
-    # Stop old nodes
+    update_progress(10)
+
     stop_all_nodes()
 
-    # Generate new shares
+    update_progress(30)
+
     result = generate_shares()
 
     write_output(result)
 
-    # Restart nodes
+    update_progress(70)
+
     start_all_nodes()
+
+    update_progress(100)
 
     write_output(
         "\nAll nodes restarted "
         "with latest shares."
+    )
+
+    root.after(
+        1000,
+        lambda: update_progress(0)
     )
 
 # --------------------------------------------
@@ -255,9 +308,24 @@ def gui_recover_secret():
 
     output_box.delete(1.0, tk.END)
 
+    update_progress(0)
+
+    write_output(
+        "Recovering secret...\n"
+    )
+
+    update_progress(40)
+
     result = recover_secret_process()
 
+    update_progress(100)
+
     write_output(result)
+
+    root.after(
+        1000,
+        lambda: update_progress(0)
+    )
 
 # ============================================
 # Main Buttons
@@ -272,6 +340,7 @@ generate_button = tk.Button(
     text="Generate Shares",
     width=25,
     height=2,
+    bg="lightblue",
     command=gui_generate_shares
 )
 
@@ -287,6 +356,7 @@ recover_button = tk.Button(
     text="Recover Secret",
     width=25,
     height=2,
+    bg="khaki",
     command=gui_recover_secret
 )
 
@@ -302,6 +372,7 @@ check_button = tk.Button(
     text="Check Nodes",
     width=25,
     height=2,
+    bg="orange",
     command=check_nodes
 )
 
@@ -320,53 +391,13 @@ node_frame = tk.Frame(root)
 
 node_frame.pack(pady=10)
 
-# Headers
-header1 = tk.Label(
-    node_frame,
-    text="Node",
-    font=("Arial", 10, "bold")
-)
-
-header1.grid(
-    row=0,
-    column=0,
-    padx=10,
-    pady=5
-)
-
-header2 = tk.Label(
-    node_frame,
-    text="Start",
-    font=("Arial", 10, "bold")
-)
-
-header2.grid(
-    row=0,
-    column=1,
-    padx=10,
-    pady=5
-)
-
-header3 = tk.Label(
-    node_frame,
-    text="Stop",
-    font=("Arial", 10, "bold")
-)
-
-header3.grid(
-    row=0,
-    column=2,
-    padx=10,
-    pady=5
-)
-
-# Node Buttons
 for i in range(1, 6):
 
     node_label = tk.Label(
         node_frame,
         text=f"Node {i}",
-        width=15
+        width=15,
+        font=("Arial", 10, "bold")
     )
 
     node_label.grid(
@@ -407,12 +438,12 @@ for i in range(1, 6):
     )
 
 # ============================================
-# Start / Stop All Buttons
+# Global Controls
 # ============================================
 
 control_frame = tk.Frame(root)
 
-control_frame.pack(pady=15)
+control_frame.pack(pady=20)
 
 start_all_button = tk.Button(
     control_frame,
