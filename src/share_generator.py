@@ -3,6 +3,8 @@ import secrets
 import json
 import os
 
+from encrypt_database import encrypt_database
+
 from utils import (
     polynomial,
     PRIME
@@ -16,7 +18,10 @@ def generate_shares():
 
     output = ""
 
+    # ========================================
     # Parameters
+    # ========================================
+
     N = 5
     T = 3
 
@@ -74,7 +79,7 @@ def generate_shares():
         output += f"Admin {i}: {share}\n"
 
     # ========================================
-    # Create Shares Folder
+    # Project Paths
     # ========================================
 
     current_dir = os.path.dirname(
@@ -85,6 +90,10 @@ def generate_shares():
         current_dir
     )
 
+    # ========================================
+    # Save Original Secret
+    # ========================================
+
     shares_folder = os.path.join(
         project_root,
         "shares"
@@ -94,10 +103,6 @@ def generate_shares():
         shares_folder,
         exist_ok=True
     )
-
-    # ========================================
-    # Save Original Secret
-    # ========================================
 
     original_key_path = os.path.join(
         shares_folder,
@@ -112,23 +117,63 @@ def generate_shares():
     output += f"{original_key_path}\n"
 
     # ========================================
-    # Save Shares
+    # Create Distributed Nodes
     # ========================================
+
+    nodes_folder = os.path.join(
+        project_root,
+        "nodes"
+    )
+
+    os.makedirs(
+        nodes_folder,
+        exist_ok=True
+    )
+
+    # ========================================
+    # Save Shares into Node Folders
+    # ========================================
+
+    output += "\n====================================\n"
+    output += " DISTRIBUTING SHARES TO NODES \n"
+    output += "====================================\n"
 
     for i, (x, y) in enumerate(
         shares,
         start=1
     ):
 
+        # ------------------------------------
+        # Create Node Folder
+        # ------------------------------------
+
+        node_folder = os.path.join(
+            nodes_folder,
+            f"node{i}"
+        )
+
+        os.makedirs(
+            node_folder,
+            exist_ok=True
+        )
+
+        # ------------------------------------
+        # Share Data
+        # ------------------------------------
+
         share_data = {
             "admin_id": i,
-            "x": x,
-            "y": y
+            "x": str(x),
+            "y": str(y)
         }
 
+        # ------------------------------------
+        # Save Share
+        # ------------------------------------
+
         filename = os.path.join(
-            shares_folder,
-            f"site_admin_{i}.json"
+            node_folder,
+            "share.json"
         )
 
         with open(filename, "w") as file:
@@ -139,18 +184,31 @@ def generate_shares():
                 indent=4
             )
 
-        output += f"Saved: {filename}\n"
+        output += (
+            f"Node{i} received share:\n"
+        )
+
+        output += f"{filename}\n\n"
 
     # ========================================
     # Finished
     # ========================================
 
-    output += "\n====================================\n"
-    output += " SHARES SAVED SUCCESSFULLY \n"
+    output += "====================================\n"
+    output += " DISTRIBUTION COMPLETED \n"
     output += "====================================\n"
 
-    output += f"{shares_folder}\n"
+    output += (
+        "Shares distributed across "
+        "5 independent nodes.\n"
+    )
 
+    encrypt_result = encrypt_database(secret)
+
+    output += "\n"
+    output += encrypt_result
+    output += "\n"
+    
     return output
 
 # ============================================

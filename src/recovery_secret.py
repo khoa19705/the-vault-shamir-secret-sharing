@@ -1,10 +1,24 @@
 import os
 import random
+import requests
+
+from decrypt_database import decrypt_database
 
 from utils import (
-    load_share,
     recover_secret
 )
+
+# ============================================
+# NODE CONFIGURATION
+# ============================================
+
+NODES = [
+    "http://localhost:3001/share",
+    "http://localhost:3002/share",
+    "http://localhost:3003/share",
+    "http://localhost:3004/share",
+    "http://localhost:3005/share"
+]
 
 # ============================================
 # SECRET RECOVERY PROCESS
@@ -31,6 +45,11 @@ def recover_secret_process():
         "shares"
     )
 
+    os.makedirs(
+        shares_folder,
+        exist_ok=True
+    )
+
     # ========================================
     # Report File
     # ========================================
@@ -41,43 +60,64 @@ def recover_secret_process():
     )
 
     # ========================================
-    # Load Available Shares
+    # Load Shares from Nodes
     # ========================================
 
     all_shares = []
 
     output += "====================================\n"
-    output += " LOADING AVAILABLE SHARES \n"
+    output += " LOADING AVAILABLE NODES \n"
     output += "====================================\n\n"
 
-    for i in range(1, 6):
+    for index, node_url in enumerate(
+        NODES,
+        start=1
+    ):
 
-        filepath = os.path.join(
-            shares_folder,
-            f"site_admin_{i}.json"
-        )
+        try:
 
-        if os.path.exists(filepath):
-
-            share = load_share(filepath)
-
-            all_shares.append(share)
-
-            output += (
-                f"Loaded: "
-                f"site_admin_{i}.json\n"
+            response = requests.get(
+                node_url,
+                timeout=3
             )
 
-        else:
+            if response.status_code == 200:
+
+                data = response.json()
+
+                share = (
+                    int(data["x"]),
+                    int(data["y"])
+                )
+
+                all_shares.append(share)
+
+                output += (
+                    f"ONLINE : node{index}\n"
+                )
+
+            else:
+
+                output += (
+                    f"OFFLINE: node{index}\n"
+                )
+
+        except Exception:
 
             output += (
-                f"MISSING: "
-                f"site_admin_{i}.json\n"
+                f"OFFLINE: node{index}\n"
             )
 
     # ========================================
     # Check Minimum Shares
     # ========================================
+
+    output += "\n"
+
+    output += (
+        f"Available Shares: "
+        f"{len(all_shares)}/5\n"
+    )
 
     if len(all_shares) < 3:
 
@@ -93,10 +133,14 @@ def recover_secret_process():
             "At least 3 shares are required.\n"
         )
 
+        with open(report_path, "w") as report:
+
+            report.write(output)
+
         return output
 
     # ========================================
-    # Random Recovery Using 3 Shares
+    # Recovery with 3 Shares
     # ========================================
 
     selected_shares = random.sample(
@@ -167,6 +211,13 @@ def recover_secret_process():
     )
 
     if recovery_success:
+        decrypt_result = decrypt_database(
+            recovered_secret    
+        )
+
+        output += "\n"
+        output += decrypt_result
+        output += "\n"
 
         output += "\nSTATUS: SUCCESS\n"
 
