@@ -1,4 +1,3 @@
-import random
 import secrets
 import json
 import os
@@ -43,9 +42,8 @@ def generate_shares():
     coefficients = [secret]
 
     for _ in range(T - 1):
-
         coefficients.append(
-            random.randrange(1, PRIME)
+            secrets.randbelow(PRIME - 1) + 1
         )
 
     output += "\n====================================\n"

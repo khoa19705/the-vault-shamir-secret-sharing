@@ -1,6 +1,7 @@
 import os
 import subprocess
 import tkinter as tk
+import threading
 
 from tkinter import (
     scrolledtext,
@@ -259,74 +260,41 @@ def check_nodes():
 # ============================================
 
 def gui_generate_shares():
-
     output_box.delete(1.0, tk.END)
-
     update_progress(0)
+    write_output("====================================")
+    write_output(" GENERATING NEW SHARES ")
+    write_output("====================================\n")
 
-    write_output(
-        "===================================="
-    )
+    def task():
+        update_progress(10)
+        stop_all_nodes()
+        update_progress(30)
+        result = generate_shares()
+        write_output(result)
+        update_progress(70)
+        start_all_nodes()
+        update_progress(100)
+        write_output("\nAll nodes restarted with latest shares.")
+        root.after(1000, lambda: update_progress(0))
 
-    write_output(
-        " GENERATING NEW SHARES "
-    )
-
-    write_output(
-        "====================================\n"
-    )
-
-    update_progress(10)
-
-    stop_all_nodes()
-
-    update_progress(30)
-
-    result = generate_shares()
-
-    write_output(result)
-
-    update_progress(70)
-
-    start_all_nodes()
-
-    update_progress(100)
-
-    write_output(
-        "\nAll nodes restarted "
-        "with latest shares."
-    )
-
-    root.after(
-        1000,
-        lambda: update_progress(0)
-    )
+    threading.Thread(target=task, daemon=True).start()
 
 # --------------------------------------------
 
 def gui_recover_secret():
-
     output_box.delete(1.0, tk.END)
-
     update_progress(0)
+    write_output("Recovering secret...\n")
 
-    write_output(
-        "Recovering secret...\n"
-    )
+    def task():
+        update_progress(40)
+        result = recover_secret_process()
+        update_progress(100)
+        write_output(result)
+        root.after(1000, lambda: update_progress(0))
 
-    update_progress(40)
-
-    result = recover_secret_process()
-
-    update_progress(100)
-
-    write_output(result)
-
-    root.after(
-        1000,
-        lambda: update_progress(0)
-    )
-
+    threading.Thread(target=task, daemon=True).start()
 # ============================================
 # Main Buttons
 # ============================================
