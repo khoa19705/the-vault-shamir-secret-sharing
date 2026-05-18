@@ -1,5 +1,4 @@
 import os
-import random
 import requests
 
 from decrypt_database import decrypt_database
@@ -109,7 +108,7 @@ def recover_secret_process():
             )
 
     # ========================================
-    # Check Minimum Shares
+    # Statistics
     # ========================================
 
     output += "\n"
@@ -118,62 +117,6 @@ def recover_secret_process():
         f"Available Shares: "
         f"{len(all_shares)}/5\n"
     )
-
-    if len(all_shares) < 3:
-
-        output += "\n====================================\n"
-        output += " RECOVERY FAILED \n"
-        output += "====================================\n"
-
-        output += (
-            "Not enough shares available.\n"
-        )
-
-        output += (
-            "At least 3 shares are required.\n"
-        )
-
-        with open(report_path, "w") as report:
-
-            report.write(output)
-
-        return output
-
-    # ========================================
-    # Recovery with 3 Shares
-    # ========================================
-
-    selected_shares = random.sample(
-        all_shares,
-        3
-    )
-
-    output += "\n====================================\n"
-    output += " RECOVERING SECRET WITH 3 SHARES \n"
-    output += "====================================\n\n"
-
-    output += "Selected Shares:\n"
-
-    for share in selected_shares:
-
-        output += f"{share}\n"
-
-    recovered_secret = recover_secret(
-        selected_shares
-    )
-
-    # ========================================
-    # Save Recovered Secret
-    # ========================================
-
-    recovered_key_path = os.path.join(
-        shares_folder,
-        "recovered_key.txt"
-    )
-
-    with open(recovered_key_path, "w") as file:
-
-        file.write(str(recovered_secret))
 
     # ========================================
     # Load Original Secret
@@ -189,100 +132,152 @@ def recover_secret_process():
         original_secret = int(file.read())
 
     # ========================================
-    # Verify Recovery
+    # USE ALL AVAILABLE SHARES
     # ========================================
 
-    recovery_success = (
-        original_secret == recovered_secret
-    )
+    if len(all_shares) > 0:
 
-    output += "\n====================================\n"
-    output += " VERIFYING RECOVERY \n"
-    output += "====================================\n"
-
-    output += (
-        f"Original Secret : "
-        f"{original_secret}\n"
-    )
-
-    output += (
-        f"Recovered Secret: "
-        f"{recovered_secret}\n"
-    )
-
-    if recovery_success:
-        decrypt_result = decrypt_database(
-            recovered_secret    
-        )
-
-        output += "\n"
-        output += decrypt_result
-        output += "\n"
-
-        output += "\nSTATUS: SUCCESS\n"
-
-        output += (
-            "Recovered secret is CORRECT.\n"
-        )
-
-    else:
-
-        output += "\nSTATUS: FAILED\n"
-
-        output += (
-            "Recovered secret does NOT match.\n"
-        )
-
-    # ========================================
-    # Failure Test with 2 Shares
-    # ========================================
-
-    if len(all_shares) >= 2:
-
-        two_shares = random.sample(
-            all_shares,
-            2
-        )
-
-        failed_secret = recover_secret(
-            two_shares
-        )
-
-        failure_success = (
-            failed_secret != original_secret
-        )
+        selected_shares = all_shares
 
         output += "\n====================================\n"
-        output += " FAILURE TEST WITH 2 SHARES \n"
+
+        output += (
+            f" RECOVERING SECRET WITH "
+            f"{len(selected_shares)} SHARES \n"
+        )
+
         output += "====================================\n\n"
 
         output += "Selected Shares:\n"
 
-        for share in two_shares:
+        for share in selected_shares:
 
             output += f"{share}\n"
 
-        output += (
-            f"\nRecovered Value: "
-            f"{failed_secret}\n"
+        # ====================================
+        # Recover Secret
+        # ====================================
+
+        recovered_secret = recover_secret(
+            selected_shares
         )
 
-        if failure_success:
+        # ====================================
+        # Save Recovered Key
+        # ====================================
+
+        recovered_key_path = os.path.join(
+            shares_folder,
+            "recovered_key.txt"
+        )
+
+        with open(recovered_key_path, "w") as file:
+
+            file.write(str(recovered_secret))
+
+        # ====================================
+        # Verify Recovery
+        # ====================================
+
+        recovery_success = (
+            original_secret == recovered_secret
+        )
+
+        output += "\n====================================\n"
+        output += " VERIFYING RECOVERY \n"
+        output += "====================================\n"
+
+        output += (
+            f"Original Secret : "
+            f"{original_secret}\n"
+        )
+
+        output += (
+            f"Recovered Secret: "
+            f"{recovered_secret}\n"
+        )
+
+        # ====================================
+        # Correct Key
+        # ====================================
+
+        if recovery_success:
+
+            output += "\nSTATUS: SUCCESS\n"
 
             output += (
-                "\nSTATUS: FAILED AS EXPECTED\n"
+                "Recovered secret is CORRECT.\n"
             )
 
-            output += (
-                "2 shares are insufficient "
-                "to recover the secret.\n"
-            )
+        # ====================================
+        # Wrong Key
+        # ====================================
 
         else:
 
+            output += "\nSTATUS: FAILED\n"
+
             output += (
-                "\nSTATUS: UNEXPECTED\n"
+                "Recovered secret is INVALID.\n"
             )
+
+        # ====================================
+        # Attempt Database Decryption
+        # ====================================
+
+        output += "\n====================================\n"
+        output += " DATABASE DECRYPTION TEST \n"
+        output += "====================================\n"
+
+        try:
+
+            decrypt_result = decrypt_database(
+                recovered_secret
+            )
+
+            output += "\n"
+            output += decrypt_result
+            output += "\n"
+
+            if recovery_success:
+
+                output += (
+                    "\nDatabase decrypted successfully "
+                    "with correct key.\n"
+                )
+
+            else:
+
+                output += (
+                    "\nWARNING: Database decrypted "
+                    "with invalid key.\n"
+                )
+
+        except Exception as e:
+
+            output += (
+                f"\nDecryption Failed: "
+                f"{str(e)}\n"
+            )
+
+            output += (
+                "Wrong key could not decrypt "
+                "database.\n"
+            )
+
+    # ========================================
+    # NO SHARE AVAILABLE
+    # ========================================
+
+    else:
+
+        output += "\n====================================\n"
+        output += " RECOVERY FAILED \n"
+        output += "====================================\n"
+
+        output += (
+            "No shares available.\n"
+        )
 
     # ========================================
     # Write Report

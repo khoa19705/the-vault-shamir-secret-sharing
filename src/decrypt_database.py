@@ -66,24 +66,43 @@ def decrypt_database(secret):
     # AES Decryption
     # ========================================
 
+    cipher = AES.new(
+        key,
+        AES.MODE_CBC,
+        iv
+    )
+
+    decrypted_raw = cipher.decrypt(
+        ciphertext
+    )
+
+    # ========================================
+    # Try Unpadding
+    # ========================================
+
     try:
 
-        cipher = AES.new(
-            key,
-            AES.MODE_CBC,
-            iv
-        )
-
         decrypted_data = unpad(
-            cipher.decrypt(ciphertext),
+            decrypted_raw,
             AES.block_size
         )
 
-    except Exception as e:
+        status = (
+            "Database decrypted successfully."
+        )
 
-        return (
-            "Decryption failed.\n"
-            f"Error: {str(e)}"
+    except Exception:
+
+        # ====================================
+        # Wrong Key
+        # Save corrupted content for demo
+        # ====================================
+
+        decrypted_data = decrypted_raw
+
+        status = (
+            "WARNING: Invalid key detected.\n"
+            "Database content is corrupted."
         )
 
     # ========================================
@@ -99,6 +118,6 @@ def decrypt_database(secret):
     # ========================================
 
     return (
-        "Database decrypted successfully.\n"
+        f"{status}\n"
         f"Saved: {decrypted_path}"
     )
