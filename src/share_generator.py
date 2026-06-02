@@ -9,24 +9,12 @@ from utils import (
     PRIME
 )
 
-# ============================================
-# SHARE GENERATION PROCESS
-# ============================================
-
 def generate_shares():
 
     output = ""
 
-    # ========================================
-    # Parameters
-    # ========================================
-
     N = 5
     T = 3
-
-    # ========================================
-    # Generate AES-256 Secret Key
-    # ========================================
 
     secret = secrets.randbits(256)
 
@@ -34,10 +22,6 @@ def generate_shares():
     output += " AES-256 MASTER KEY \n"
     output += "====================================\n"
     output += f"{secret}\n"
-
-    # ========================================
-    # Generate Polynomial Coefficients
-    # ========================================
 
     coefficients = [secret]
 
@@ -53,10 +37,6 @@ def generate_shares():
     for i, coeff in enumerate(coefficients):
 
         output += f"a{i} = {coeff}\n"
-
-    # ========================================
-    # Generate Shares
-    # ========================================
 
     shares = []
 
@@ -76,10 +56,6 @@ def generate_shares():
 
         output += f"Admin {i}: {share}\n"
 
-    # ========================================
-    # Project Paths
-    # ========================================
-
     current_dir = os.path.dirname(
         os.path.abspath(__file__)
     )
@@ -87,10 +63,6 @@ def generate_shares():
     project_root = os.path.dirname(
         current_dir
     )
-
-    # ========================================
-    # Save Original Secret
-    # ========================================
 
     shares_folder = os.path.join(
         project_root,
@@ -114,10 +86,6 @@ def generate_shares():
     output += "\nOriginal key saved:\n"
     output += f"{original_key_path}\n"
 
-    # ========================================
-    # Create Distributed Nodes
-    # ========================================
-
     nodes_folder = os.path.join(
         project_root,
         "nodes"
@@ -128,10 +96,6 @@ def generate_shares():
         exist_ok=True
     )
 
-    # ========================================
-    # Save Shares into Node Folders
-    # ========================================
-
     output += "\n====================================\n"
     output += " DISTRIBUTING SHARES TO NODES \n"
     output += "====================================\n"
@@ -140,10 +104,6 @@ def generate_shares():
         shares,
         start=1
     ):
-
-        # ------------------------------------
-        # Create Node Folder
-        # ------------------------------------
 
         node_folder = os.path.join(
             nodes_folder,
@@ -155,19 +115,11 @@ def generate_shares():
             exist_ok=True
         )
 
-        # ------------------------------------
-        # Share Data
-        # ------------------------------------
-
         share_data = {
             "admin_id": i,
             "x": str(x),
             "y": str(y)
         }
-
-        # ------------------------------------
-        # Save Share
-        # ------------------------------------
 
         filename = os.path.join(
             node_folder,
@@ -188,10 +140,6 @@ def generate_shares():
 
         output += f"{filename}\n\n"
 
-    # ========================================
-    # Finished
-    # ========================================
-
     output += "====================================\n"
     output += " DISTRIBUTION COMPLETED \n"
     output += "====================================\n"
@@ -208,10 +156,6 @@ def generate_shares():
     output += "\n"
     
     return output
-
-# ============================================
-# Run Directly
-# ============================================
 
 if __name__ == "__main__":
 

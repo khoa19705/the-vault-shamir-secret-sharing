@@ -13,14 +13,6 @@ import requests
 from share_generator import generate_shares
 from recovery_secret import recover_secret_process
 
-# ============================================
-# SHAMIR SECRET SHARING GUI APPLICATION
-# ============================================
-
-# ============================================
-# Project Paths
-# ============================================
-
 BASE_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
@@ -29,15 +21,7 @@ PROJECT_ROOT = os.path.dirname(
     BASE_DIR
 )
 
-# ============================================
-# Store Running Node Processes
-# ============================================
-
 node_processes = {}
-
-# ============================================
-# GUI Window
-# ============================================
 
 root = tk.Tk()
 
@@ -49,10 +33,6 @@ root.geometry("1200x900")
 
 root.resizable(True, True)
 
-# ============================================
-# Title
-# ============================================
-
 title_label = tk.Label(
     root,
     text="THE VAULT - DISTRIBUTED SECRET SYSTEM",
@@ -60,10 +40,6 @@ title_label = tk.Label(
 )
 
 title_label.pack(pady=10)
-
-# ============================================
-# Progress Bar
-# ============================================
 
 progress = ttk.Progressbar(
     root,
@@ -73,10 +49,6 @@ progress = ttk.Progressbar(
 )
 
 progress.pack(pady=10)
-
-# ============================================
-# Output Area
-# ============================================
 
 output_box = scrolledtext.ScrolledText(
     root,
@@ -89,10 +61,6 @@ output_box.pack(
     pady=10
 )
 
-# ============================================
-# Helper Functions
-# ============================================
-
 def write_output(text):
 
     output_box.insert(
@@ -102,17 +70,11 @@ def write_output(text):
 
     output_box.see(tk.END)
 
-# --------------------------------------------
-
 def update_progress(value):
 
     progress["value"] = value
 
     root.update_idletasks()
-
-# ============================================
-# Node Controls
-# ============================================
 
 def start_node(node_number):
 
@@ -151,8 +113,6 @@ def start_node(node_number):
             f"{node_number}: {str(e)}"
         )
 
-# --------------------------------------------
-
 def stop_node(node_number):
 
     port = 3000 + node_number
@@ -184,8 +144,6 @@ def stop_node(node_number):
         f"Node {node_number} stopped."
     )
 
-# --------------------------------------------
-
 def start_all_nodes():
 
     write_output(
@@ -196,8 +154,6 @@ def start_all_nodes():
 
         start_node(i)
 
-# --------------------------------------------
-
 def stop_all_nodes():
 
     write_output(
@@ -207,8 +163,6 @@ def stop_all_nodes():
     for i in range(1, 6):
 
         stop_node(i)
-
-# --------------------------------------------
 
 def check_nodes():
 
@@ -255,10 +209,6 @@ def check_nodes():
                 f"Node {i}: OFFLINE"
             )
 
-# ============================================
-# GUI Actions
-# ============================================
-
 def gui_generate_shares():
     output_box.delete(1.0, tk.END)
     update_progress(0)
@@ -280,8 +230,6 @@ def gui_generate_shares():
 
     threading.Thread(target=task, daemon=True).start()
 
-# --------------------------------------------
-
 def gui_recover_secret():
     output_box.delete(1.0, tk.END)
     update_progress(0)
@@ -295,9 +243,6 @@ def gui_recover_secret():
         root.after(1000, lambda: update_progress(0))
 
     threading.Thread(target=task, daemon=True).start()
-# ============================================
-# Main Buttons
-# ============================================
 
 main_button_frame = tk.Frame(root)
 
@@ -351,10 +296,6 @@ check_button.grid(
     pady=5
 )
 
-# ============================================
-# Node Controls
-# ============================================
-
 node_frame = tk.Frame(root)
 
 node_frame.pack(pady=10)
@@ -405,10 +346,6 @@ for i in range(1, 6):
         pady=5
     )
 
-# ============================================
-# Global Controls
-# ============================================
-
 control_frame = tk.Frame(root)
 
 control_frame.pack(pady=20)
@@ -442,9 +379,5 @@ stop_all_button.grid(
     column=1,
     padx=15
 )
-
-# ============================================
-# Run Application
-# ============================================
 
 root.mainloop()

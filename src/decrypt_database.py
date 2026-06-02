@@ -2,10 +2,6 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 import os
 
-# ============================================
-# Decrypt Database
-# ============================================
-
 def decrypt_database(secret):
 
     current_dir = os.path.dirname(
@@ -15,10 +11,6 @@ def decrypt_database(secret):
     project_root = os.path.dirname(
         current_dir
     )
-
-    # ========================================
-    # Database Paths
-    # ========================================
 
     encrypted_path = os.path.join(
         project_root,
@@ -32,10 +24,6 @@ def decrypt_database(secret):
         "database_decrypted.json"
     )
 
-    # ========================================
-    # Check Encrypted File
-    # ========================================
-
     if not os.path.exists(encrypted_path):
 
         return (
@@ -43,28 +31,16 @@ def decrypt_database(secret):
             f"Expected: {encrypted_path}"
         )
 
-    # ========================================
-    # Read Encrypted File
-    # ========================================
-
     with open(encrypted_path, "rb") as file:
 
         iv = file.read(16)
 
         ciphertext = file.read()
 
-    # ========================================
-    # Convert Secret to AES Key
-    # ========================================
-
     key = secret.to_bytes(
         32,
         byteorder="big"
     )
-
-    # ========================================
-    # AES Decryption
-    # ========================================
 
     cipher = AES.new(
         key,
@@ -75,10 +51,6 @@ def decrypt_database(secret):
     decrypted_raw = cipher.decrypt(
         ciphertext
     )
-
-    # ========================================
-    # Try Unpadding
-    # ========================================
 
     try:
 
@@ -93,11 +65,6 @@ def decrypt_database(secret):
 
     except Exception:
 
-        # ====================================
-        # Wrong Key
-        # Save corrupted content for demo
-        # ====================================
-
         decrypted_data = decrypted_raw
 
         status = (
@@ -105,17 +72,9 @@ def decrypt_database(secret):
             "Database content is corrupted."
         )
 
-    # ========================================
-    # Save Decrypted Database
-    # ========================================
-
     with open(decrypted_path, "wb") as file:
 
         file.write(decrypted_data)
-
-    # ========================================
-    # Finished
-    # ========================================
 
     return (
         f"{status}\n"

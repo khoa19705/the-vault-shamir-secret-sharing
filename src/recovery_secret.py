@@ -7,10 +7,6 @@ from utils import (
     recover_secret
 )
 
-# ============================================
-# NODE CONFIGURATION
-# ============================================
-
 NODES = [
     "http://localhost:3001/share",
     "http://localhost:3002/share",
@@ -19,17 +15,9 @@ NODES = [
     "http://localhost:3005/share"
 ]
 
-# ============================================
-# SECRET RECOVERY PROCESS
-# ============================================
-
 def recover_secret_process():
 
     output = ""
-
-    # ========================================
-    # Project Paths
-    # ========================================
 
     current_dir = os.path.dirname(
         os.path.abspath(__file__)
@@ -49,18 +37,10 @@ def recover_secret_process():
         exist_ok=True
     )
 
-    # ========================================
-    # Report File
-    # ========================================
-
     report_path = os.path.join(
         shares_folder,
         "recovery_report.txt"
     )
-
-    # ========================================
-    # Load Shares from Nodes
-    # ========================================
 
     all_shares = []
 
@@ -107,20 +87,12 @@ def recover_secret_process():
                 f"OFFLINE: node{index}\n"
             )
 
-    # ========================================
-    # Statistics
-    # ========================================
-
     output += "\n"
 
     output += (
         f"Available Shares: "
         f"{len(all_shares)}/5\n"
     )
-
-    # ========================================
-    # Load Original Secret
-    # ========================================
 
     original_key_path = os.path.join(
         shares_folder,
@@ -130,10 +102,6 @@ def recover_secret_process():
     with open(original_key_path, "r") as file:
 
         original_secret = int(file.read())
-
-    # ========================================
-    # USE ALL AVAILABLE SHARES
-    # ========================================
 
     if len(all_shares) > 0:
 
@@ -154,17 +122,9 @@ def recover_secret_process():
 
             output += f"{share}\n"
 
-        # ====================================
-        # Recover Secret
-        # ====================================
-
         recovered_secret = recover_secret(
             selected_shares
         )
-
-        # ====================================
-        # Save Recovered Key
-        # ====================================
 
         recovered_key_path = os.path.join(
             shares_folder,
@@ -174,10 +134,6 @@ def recover_secret_process():
         with open(recovered_key_path, "w") as file:
 
             file.write(str(recovered_secret))
-
-        # ====================================
-        # Verify Recovery
-        # ====================================
 
         recovery_success = (
             original_secret == recovered_secret
@@ -197,10 +153,6 @@ def recover_secret_process():
             f"{recovered_secret}\n"
         )
 
-        # ====================================
-        # Correct Key
-        # ====================================
-
         if recovery_success:
 
             output += "\nSTATUS: SUCCESS\n"
@@ -209,10 +161,6 @@ def recover_secret_process():
                 "Recovered secret is CORRECT.\n"
             )
 
-        # ====================================
-        # Wrong Key
-        # ====================================
-
         else:
 
             output += "\nSTATUS: FAILED\n"
@@ -220,10 +168,6 @@ def recover_secret_process():
             output += (
                 "Recovered secret is INVALID.\n"
             )
-
-        # ====================================
-        # Attempt Database Decryption
-        # ====================================
 
         output += "\n====================================\n"
         output += " DATABASE DECRYPTION TEST \n"
@@ -265,10 +209,6 @@ def recover_secret_process():
                 "database.\n"
             )
 
-    # ========================================
-    # NO SHARE AVAILABLE
-    # ========================================
-
     else:
 
         output += "\n====================================\n"
@@ -278,10 +218,6 @@ def recover_secret_process():
         output += (
             "No shares available.\n"
         )
-
-    # ========================================
-    # Write Report
-    # ========================================
 
     with open(report_path, "w") as report:
 
@@ -294,10 +230,6 @@ def recover_secret_process():
     output += f"{report_path}\n"
 
     return output
-
-# ============================================
-# Run Directly
-# ============================================
 
 if __name__ == "__main__":
 

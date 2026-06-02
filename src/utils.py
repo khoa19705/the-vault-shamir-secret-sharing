@@ -1,17 +1,7 @@
 import json
 import os
 
-# ============================================
-# GLOBAL PRIME NUMBER
-# Finite field for Shamir Secret Sharing
-# ============================================
-
 PRIME = 2**257 - 93
-
-# ============================================
-# Polynomial Function
-# f(x) = a0 + a1*x + a2*x^2 + ...
-# ============================================
 
 def polynomial(x, coefficients):
 
@@ -23,18 +13,9 @@ def polynomial(x, coefficients):
 
     return result % PRIME
 
-# ============================================
-# Modular Inverse
-# Used in Lagrange Interpolation
-# ============================================
-
 def mod_inverse(a):
 
     return pow(a, -1, PRIME)
-
-# ============================================
-# Save Share to JSON File
-# ============================================
 
 def save_share(folder_path, admin_id, x, y):
 
@@ -52,10 +33,6 @@ def save_share(folder_path, admin_id, x, y):
     with open(filename, "w") as file:
         json.dump(share_data, file, indent=4)
 
-# ============================================
-# Load Share from JSON File
-# ============================================
-
 def load_share(filepath):
 
     with open(filepath, "r") as file:
@@ -63,10 +40,6 @@ def load_share(filepath):
         data = json.load(file)
 
     return (data["x"], data["y"])
-
-# ============================================
-# Recover Secret using Lagrange Interpolation
-# ============================================
 
 def recover_secret(shares):
 
