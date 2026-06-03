@@ -1,29 +1,11 @@
-"""
-============================================================
-  THE VAULT — CHẾ ĐỘ HACKER: DEMO TẤN CÔNG HỆ THỐNG
-  hacker_attack.py
-============================================================
-  Mục đích: Chứng minh hệ thống an toàn trước 4 kịch bản
-  tấn công thực tế. Script này phải được chạy SAU KHI đã
-  chạy share_generator.py (để có database.enc và shares).
-
-  Cách chạy:
-      python hacker_attack.py
-
-  Kết quả mong đợi: CẢ 4 ATTACK ĐỀU THẤT BẠI
-============================================================
-"""
-
 import os
 import sys
 import json
 import time
 
-# ── Đường dẫn project ───────────────────────────────────────
 THU_MUC_SCRIPT  = os.path.dirname(os.path.abspath(__file__))
 THU_MUC_GOC     = os.path.dirname(THU_MUC_SCRIPT)
 
-# Nếu chạy thẳng từ thư mục gốc project thì THU_MUC_GOC = THU_MUC_SCRIPT
 if not os.path.isdir(os.path.join(THU_MUC_GOC, "database")):
     THU_MUC_GOC = THU_MUC_SCRIPT
 
@@ -32,7 +14,6 @@ DUONG_DAN_ENC   = os.path.join(THU_MUC_GOC, "database", "database.enc")
 DUONG_DAN_GIAI  = os.path.join(THU_MUC_GOC, "database", "database_decrypted.json")
 THU_MUC_NODES   = os.path.join(THU_MUC_GOC, "nodes")
 
-# ── Import các module mật mã từ project ─────────────────────
 sys.path.insert(0, THU_MUC_SCRIPT)
 try:
     from utils import recover_secret, PRIME
@@ -42,7 +23,6 @@ except ImportError:
     print("      Hãy chạy script này từ thư mục src/ của project.")
     sys.exit(1)
 
-# ── Màu terminal (ANSI) ──────────────────────────────────────
 DO    = "\033[91m"
 XANH  = "\033[92m"
 VANG  = "\033[93m"
@@ -51,7 +31,6 @@ DAM   = "\033[1m"
 RESET = "\033[0m"
 MO    = "\033[2m"
 
-# ── Hàm tiện ích ────────────────────────────────────────────
 
 def tieu_de(noi_dung: str) -> None:
     do_rong = 60
@@ -101,10 +80,6 @@ def la_du_lieu_rac(duong_dan: str) -> bool:
     """Kiểm tra file có phải dữ liệu rác (non-UTF8 hoặc không parse được JSON)."""
     return not la_json_hop_le(duong_dan)
 
-# ════════════════════════════════════════════════════════════
-#  KIỂM TRA MÔI TRƯỜNG trước khi bắt đầu tấn công
-# ════════════════════════════════════════════════════════════
-
 tieu_de("KIỂM TRA MÔI TRƯỜNG TRƯỚC KHI TẤN CÔNG")
 
 if not os.path.exists(DUONG_DAN_ENC):
@@ -136,11 +111,6 @@ print(f"  {XANH}✓{RESET} Môi trường sẵn sàng — bắt đầu mô phỏ
 time.sleep(0.5)
 
 ket_qua_attacks = []   # (ten_attack, bi_chan: bool, mo_ta: str)
-
-# ════════════════════════════════════════════════════════════
-#  TẤN CÔNG 1: Dùng chỉ 2 shares để tái tạo khóa
-#  Mối đe dọa: Kẻ tấn công mua chuộc được 2 trong 5 admin
-# ════════════════════════════════════════════════════════════
 
 tieu_de("TẤN CÔNG 1 — 2 Admin Câu Kết (2 trên 5 shares)")
 print("  Kịch bản: Kẻ tấn công mua chuộc 2 quản trị viên và")
@@ -184,11 +154,6 @@ else:
         ket_qua_attacks.append(("2 admin câu kết", False,
                                  "JSON hợp lệ bất thường — cần điều tra ngay"))
 
-# ════════════════════════════════════════════════════════════
-#  TẤN CÔNG 2: Đọc trực tiếp database.enc từ ổ đĩa
-#  Mối đe dọa: Kẻ tấn công truy cập vật lý vào máy chủ DB
-# ════════════════════════════════════════════════════════════
-
 tieu_de("TẤN CÔNG 2 — Đánh Cắp File Database Trực Tiếp")
 print("  Kịch bản: Kẻ tấn công có quyền truy cập vật lý hoặc")
 print("  cấp hệ điều hành vào máy chủ DB và sao chép trực tiếp")
@@ -208,7 +173,6 @@ thong_tin(f"16 bytes đầu (IV):        {iv_hex}")
 thong_tin(f"32 bytes tiếp (ciphertext): {mau_ma_hoa.hex()}")
 print()
 
-# Thử parse như JSON
 try:
     du_lieu_thu.decode("utf-8")
     json.loads(du_lieu_thu)
@@ -222,11 +186,6 @@ except (UnicodeDecodeError, json.JSONDecodeError):
     thong_tin("IV được công khai ở đầu file nhưng không cung cấp thông tin về khóa.")
     ket_qua_attacks.append(("đánh cắp file trực tiếp", True,
                              "Chỉ là ciphertext nhị phân — cần khóa để giải mã"))
-
-# ════════════════════════════════════════════════════════════
-#  TẤN CÔNG 3: Brute-force với 1 share để đoán secret
-#  Mối đe dọa: Kẻ tấn công lấy được 1 share, thử đoán ngẫu nhiên
-# ════════════════════════════════════════════════════════════
 
 tieu_de("TẤN CÔNG 3 — Brute-Force Với 1 Share")
 print("  Kịch bản: Kẻ tấn công xâm nhập 1 node và lấy được")
@@ -270,11 +229,6 @@ else:
     ket_qua_attacks.append(("brute-force 1 share", False,
                              f"Đoán đúng bất ngờ {so_lan_trung} lần"))
 
-# ════════════════════════════════════════════════════════════
-#  TẤN CÔNG 4: Thử giải mã với khóa AES ngẫu nhiên (không có share)
-#  Mối đe dọa: Kẻ tấn công có database.enc nhưng không có share nào
-# ════════════════════════════════════════════════════════════
-
 tieu_de("TẤN CÔNG 4 — Giải Mã Không Cần Share (Bonus)")
 print("  Kịch bản: Kẻ tấn công có database.enc nhưng không có")
 print("  share nào. Tự tạo khóa AES 256-bit ngẫu nhiên và thử giải mã.\n")
@@ -296,10 +250,6 @@ else:
     ket_qua_thua("Khóa ngẫu nhiên tạo ra output đọc được — xác suất cực thấp!")
     ket_qua_attacks.append(("giải mã không cần share", False,
                              "JSON hợp lệ từ khóa ngẫu nhiên — cần điều tra"))
-
-# ════════════════════════════════════════════════════════════
-#  BÁO CÁO TỔNG KẾT
-# ════════════════════════════════════════════════════════════
 
 tieu_de("BÁO CÁO TỔNG KẾT CÁC CUỘC TẤN CÔNG")
 
@@ -334,7 +284,6 @@ print()
 print(CYAN + "=" * 60 + RESET)
 print()
 
-# ── Ghi báo cáo ra file ──────────────────────────────────────
 duong_dan_bao_cao = os.path.join(THU_MUC_SHARES, "bao_cao_tan_cong.txt")
 os.makedirs(THU_MUC_SHARES, exist_ok=True)
 with open(duong_dan_bao_cao, "w", encoding="utf-8") as bao_cao:
