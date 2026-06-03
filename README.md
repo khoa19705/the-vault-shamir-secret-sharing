@@ -109,7 +109,7 @@ project-root/
 **1. Clone repository:**
 
 ```bash
-git clone https://github.com/ten-cua-ban/the-vault.git
+git clone https://github.com/khoa19705/the-vault-shamir-secret-sharing
 cd the-vault
 ```
 
