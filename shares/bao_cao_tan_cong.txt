@@ -1,0 +1,18 @@
+THE VAULT — BÁO CÁO TẤN CÔNG HACKER MODE
+==================================================
+
+[ĐÃ CHẶN] 2 admin câu kết
+           Tái tạo sai khóa — kẻ tấn công không có gì
+
+[ĐÃ CHẶN] đánh cắp file trực tiếp
+           Chỉ là ciphertext nhị phân — cần khóa để giải mã
+
+[ĐÃ CHẶN] brute-force 1 share
+           0/100.000 lần đoán đúng — trường quá lớn
+
+[ĐÃ CHẶN] giải mã không cần share
+           Dữ liệu rác — bỏ padding thất bại với khóa sai
+
+==================================================
+Kết quả: 4/4 cuộc tấn công bị chặn
+Trạng thái hệ thống: AN TOÀN

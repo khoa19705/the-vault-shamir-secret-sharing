@@ -1,0 +1,18 @@
+THE VAULT — HACKER ATTACK REPORT
+==================================================
+
+[BLOCKED] 2-share collusion
+         Wrong key reconstructed — attacker gets nothing
+
+[BLOCKED] direct file theft
+         Binary ciphertext only — key required to decrypt
+
+[BLOCKED] 1-share brute-force
+         0/100,000 guesses correct — field too large
+
+[BLOCKED] zero-knowledge random key
+         Gibberish output — unpadding fails with wrong key
+
+==================================================
+Result: 4/4 attacks blocked
+System status: SECURE
